@@ -12,8 +12,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: transparen
 }
 #nyan {
   display: block;
-  width: 384px;
-  height: 216px;
   image-rendering: pixelated;
 }
 #hint {
@@ -62,6 +60,14 @@ function setPos(withTransition, duration) {
     : 'none';
   wrap.style.left = catX + 'px';
   wrap.style.top  = catY + 'px';
+}
+
+// ---- Sizing (5 % of screen width, 16:9 ratio) ----
+function updateCatSize() {
+  const w = Math.round(window.innerWidth * 0.05);
+  const h = Math.round(w * (864 / 1536));
+  img.style.width  = w + 'px';
+  img.style.height = h + 'px';
 }
 
 // ---- Init ----
@@ -136,13 +142,14 @@ window.nyan.onSpeedUpdate((mult) => {
 });
 
 // ---- Resize ----
-window.addEventListener('resize', initPos);
+window.addEventListener('resize', () => { updateCatSize(); initPos(); });
 
 // ---- Hint fade ----
 setTimeout(() => { document.getElementById('hint').style.opacity = '0'; }, 5000);
 
 // ---- Start ----
 function start() {
+  updateCatSize();
   initPos();
   scheduleDirChange();
   requestAnimationFrame(driftStep);
