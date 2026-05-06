@@ -1,0 +1,20 @@
+{
+  "name": "nyan-cat",
+  "productName": "Nyan Cat",
+  "version": "1.0.0",
+  "description": "Animated Nyan Cat desktop overlay — reacts to any keypress or click, always on top.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "uiohook-napi": "^1.5.3"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
+    "electron": "^35.0.0",
+    "electron-rebuild": "^3.2.9"
+  },
+  "keywords": ["nyan-cat", "desktop", "electron", "overlay", "fun"],
+  "license": "MIT"
+}

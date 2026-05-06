@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nyan Cat</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+#cat-wrap {
+  position: absolute;
+  transition: left 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              top  0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+#cat-wrap.no-trans { transition: none !important; }
+#nyan {
+  display: block;
+  width: 384px;
+  height: 216px;
+  image-rendering: pixelated;
+}
+#hint {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,0.7);
+  font: 13px/1 monospace;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  pointer-events: none; user-select: none;
+  transition: opacity 3s;
+}
+</style>
+</head>
+<body>
+<div id="cat-wrap">
+  <img id="nyan" src="nyan_transparent.gif" alt="Nyan Cat">
+</div>
+<div id="hint">press any key or click to move</div>
+<script>
+'use strict';
+
+const wrap = document.getElementById('cat-wrap');
+const img  = document.getElementById('nyan');
+let moving = false;
+
+function catSize() {
+  return { w: img.offsetWidth, h: img.offsetHeight };
+}
+
+function initPos() {
+  const { w, h } = catSize();
+  wrap.classList.add('no-trans');
+  wrap.style.left = Math.round((window.innerWidth  - w) / 2) + 'px';
+  wrap.style.top  = Math.round((window.innerHeight - h) / 2) + 'px';
+  requestAnimationFrame(() => wrap.classList.remove('no-trans'));
+}
+
+function moveToRandom() {
+  const { w, h } = catSize();
+  const pad  = 10;
+  const maxX = Math.max(pad, window.innerWidth  - w - pad);
+  const maxY = Math.max(pad, window.innerHeight - h - pad);
+  wrap.style.left = (pad + Math.random() * (maxX - pad)) + 'px';
+  wrap.style.top  = (pad + Math.random() * (maxY - pad)) + 'px';
+}
+
+wrap.addEventListener('transitionend', () => {
+  moving = false;
+  window.nyan.moveDone();
+});
+
+// Global input events come from Electron main process via IPC
+window.nyan.onMove(() => {
+  if (moving) return;
+  moving = true;
+  moveToRandom();
+});
+
+window.addEventListener('resize', initPos);
+
+// Fade hint after 5s
+setTimeout(() => {
+  document.getElementById('hint').style.opacity = '0';
+}, 5000);
+
+img.addEventListener('load', initPos);
+if (img.complete) initPos();
+</script>
+</body>
+</html>
