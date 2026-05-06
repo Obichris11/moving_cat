@@ -44,6 +44,21 @@ function createTray() {
   );
 }
 
+// ---- Typing speed tracking ----
+const keyTimestamps = [];
+const SPEED_WINDOW_MS = 3000;
+
+function getTypingSpeed() {
+  const now = Date.now();
+  while (keyTimestamps.length && now - keyTimestamps[0] > SPEED_WINDOW_MS)
+    keyTimestamps.shift();
+  return keyTimestamps.length / (SPEED_WINDOW_MS / 1000); // keys per second
+}
+
+function speedToMult(kps) {
+  return 1 + Math.min(kps / 5, 1) * 2; // 0 kps → 1.0×,  ≥5 kps → 3.0×
+}
+
 function startHooks() {
   const { uIOhook } = require('uiohook-napi');
 
@@ -72,11 +87,23 @@ function startHooks() {
     win.webContents.send('trigger-move');
   }
 
-  uIOhook.on('keydown', trigger);
+  uIOhook.on('keydown', () => {
+    keyTimestamps.push(Date.now());
+    trigger();
+  });
   uIOhook.on('mouseclick', trigger);
   uIOhook.start();
 
-  app.on('before-quit', () => uIOhook.stop());
+  // Send speed updates to renderer every 500 ms so drift reacts to typing pace
+  const speedInterval = setInterval(() => {
+    if (win && !win.isDestroyed())
+      win.webContents.send('update-speed', speedToMult(getTypingSpeed()));
+  }, 500);
+
+  app.on('before-quit', () => {
+    uIOhook.stop();
+    clearInterval(speedInterval);
+  });
 }
 
 app.whenReady().then(() => {
